@@ -47,7 +47,7 @@
       return true
     end
   
-    def clip_out_of_range_values
+    def clip_values_beyond_limit(actual, clip_limit)
       actual.map { |val| [val, clip_limit].min }
     end
   end
