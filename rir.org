@@ -1,0 +1,86 @@
+
+* Chapter 3
+
+*** Exercise 3.1 Small Steps
+    I chose Replace Hash With Object. I noted how each key read is
+    replaced with an attr_reader, and then each key write with an attr_writer
+    call, separately. And the #[]/#[]= methods are maintained throughout, until
+    the very end.
+
+*** Exercise 3.2 Inverse Refactorings
+
+***** A: Collaps Hierarchy
+      This could be inverted with Extract Class or Extract Module
+
+***** B: Extract Method
+      Inline method.
+
+***** C: Hide Delegate
+      Remove middle man.
+
+***** D: Inline Temp
+      Replace Temp with Query (wrong!)
+
+***** E: Parameterize Method
+      Replace Parameter with Explicit Methods
+
+***** F. Rename Method
+      Rename Method
+
+* Chapter 5
+  
+*** Exercise 5.1 Comments
+
+#+BEGIN_SRC ruby
+  class Matcher
+    def match(expected, actual, clip_limit, delta) 
+      # Clip "too-large" values
+      actual = actual.map { |val| [val, clip_limit].min }
+  
+      # Check for length differences
+      return false if actual.length != expected.length
+  
+      # Check that each entry is within expected +/- delta
+      actual.each_index { |i|
+        return false if (expected[i] - actual[i]).abs > delta
+      }
+      return true
+    end
+  end
+  
+  if $0 == __FILE__
+    require 'test/unit'
+  
+    class MatcherTest < Test::Unit::TestCase
+  
+      def setup
+        @numbers = [10, 50, 30, 98]
+      end
+  
+      def test_different_lengths_rejected
+        assert !Matcher.new.match(@numbers, @numbers + [1], 100, 5)
+        assert !Matcher.new.match(@numbers + [1], @numbers, 100, 5)
+      end
+  
+      def test_different_lengths_rejected_with_clipping
+        @numbers << 103
+        assert !Matcher.new.match(@numbers, @numbers + [1], 100, 5)
+        assert !Matcher.new.match(@numbers + [1], @numbers, 100, 5)
+      end
+  
+      def test_variation_within_delta_accepted
+        assert Matcher.new.match(@numbers, [12, 55, 25, 100], 100, 5)
+      end
+  
+      def test_clipped_variation_within_delta_accepted
+        assert Matcher.new.match(@numbers, [12, 55, 25, 110], 100, 5)
+      end
+  
+      def test_variation_greater_than_delta_rejected
+        assert !Matcher.new.match(@numbers, [10, 60, 30, 98], 100, 5)
+      end
+  
+    end
+  
+  end
+#+END_SRC
