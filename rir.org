@@ -31,6 +31,7 @@
   
 *** Exercise 5.1 Comments
 
+***** A: Refactor
 #+BEGIN_SRC ruby
   class Matcher
     def match(expected, actual, clip_limit, delta) 
@@ -89,3 +90,8 @@
   
   end
 #+END_SRC
+***** B:
+      Where a comment would be useful in this code is perhaps at the top
+      of #match, explaining the type of match it will carry out.
+***** C:
+      Precious little of my recent code is commented. For better or for worse.
