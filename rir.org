@@ -46,6 +46,10 @@
       }
       return true
     end
+  
+    def clip_out_of_range_values
+  
+    end
   end
   
   if $0 == __FILE__
