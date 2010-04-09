@@ -34,8 +34,7 @@
 #+BEGIN_SRC ruby
   class Matcher
     def match(expected, actual, clip_limit, delta) 
-      # Clip "too-large" values
-      actual = actual.map { |val| [val, clip_limit].min }
+      actual = clip_values_beyond_limit(actual, clip_limit)
   
       # Check for length differences
       return false if actual.length != expected.length
