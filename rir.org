@@ -28,66 +28,66 @@
       Rename Method
 
 * Chapter 5
-  
+
 *** Exercise 5.1 Comments
 
 ***** A: Refactor
 #+BEGIN_SRC ruby
   class Matcher
-    def match(expected, actual, clip_limit, delta) 
+    def match(expected, actual, clip_limit, delta)
       actual = clip_values_beyond_limit(actual, clip_limit)
-  
+
       return false if actual.length != expected.length
-  
+
       within_delta?(expected, actual, delta)
     end
-  
-    def clip_values_beyond_limit(actual, clip_limit)
-      actual.map { |val| [val, clip_limit].min }
-    end
-  
-    def within_delta?(expected, actual, delta)
-      actual.each_index { |i|
-        return false if (expected[i] - actual[i]).abs > delta
-      }
-      return true
-    end
+
+                         d_limit(actual, clip_limit)
+  +----------------------+                     }
+  |                      |
+  |                      |
+  |                      |
+  |                      |
+  |                      |xpected[i] - actual[i]).abs > delta
+  +----------------------+
+
+    en
   end
-  
+
   if $0 == __FILE__
     require 'test/unit'
-  
+
     class MatcherTest < Test::Unit::TestCase
-  
+
       def setup
         @numbers = [10, 50, 30, 98]
       end
-  
+
       def test_different_lengths_rejected
         assert !Matcher.new.match(@numbers, @numbers + [1], 100, 5)
         assert !Matcher.new.match(@numbers + [1], @numbers, 100, 5)
       end
-  
+
       def test_different_lengths_rejected_with_clipping
         @numbers << 103
         assert !Matcher.new.match(@numbers, @numbers + [1], 100, 5)
         assert !Matcher.new.match(@numbers + [1], @numbers, 100, 5)
       end
-  
+
       def test_variation_within_delta_accepted
         assert Matcher.new.match(@numbers, [12, 55, 25, 100], 100, 5)
       end
-  
+
       def test_clipped_variation_within_delta_accepted
         assert Matcher.new.match(@numbers, [12, 55, 25, 110], 100, 5)
       end
-  
+
       def test_variation_greater_than_delta_rejected
         assert !Matcher.new.match(@numbers, [10, 60, 30, 98], 100, 5)
       end
-  
+
     end
-  
+
   end
 #+END_SRC
 ***** B:
@@ -95,3 +95,212 @@
       of #match, explaining the type of match it will carry out.
 ***** C:
       Precious little of my recent code is commented. For better or for worse.
+
+*** Exercise 5.2: Long Method
+***** A: four blocks of code to extract as methods
+#+BEGIN_SRC fundamental
+  class Report
+    def Report.report(out, machines, robot)
+      out.print "FACTORY REPORT\n"
+       machines.each do |machine|
+    +-----------------------------------------------------------+
+    |   out.print "Machine #{machine.name}"                     |
+    |                                                           |
+    | +------------------------------------------------------+  |
+    | | out.print " bin=#{machine.bin}" if machine.bin != nil|  |
+    | +------------------------------------------------------+  |
+    |                                                           |
+    |   out.print "\n"                                          |
+    +-----------------------------------------------------------+
+      end
+      out.print "\n"
+  
+   +-------------------------------------------------------+
+   |  out.print "Robot"                                    |
+   |  if robot.location != nil                             |
+   |    out.print " location=#{robot.location.name}"       |
+   |  end                                                  |
+   |+----------------------------------------------------+ |
+   || out.print " bin=#{robot.bin}" if robot.bin != nil  | |
+   |+----------------------------------------------------+ |
+   |  out.print "\n"                                       |
+   +-------------------------------------------------------+
+  
+      out.print "========\n"
+    end
+  end
+#+END_SRC
+
+***** B: Report.report as four statements
+
+      Interestingly, my refactoring is substantially different from that of the
+      authors'. I felt that the header/footer printing was not worth refactoring.
+      On the other hand, I felt that the bin-printing was worth refactoring
+      because it was repeated.
+
+#+BEGIN_SRC ruby
+class Report
+  def Report.report(out, machines, robot)
+    out.print "FACTORY REPORT\n"
+    report_machines(out, machines)
+    report_robot(out, robot)
+    out.print "========\n"
+  end
+
+  def self.report_robot(out, robot)
+    out.print "Robot"
+    if robot.location != nil
+      out.print " location=#{robot.location.name}"
+    end
+    report_bin(out, robot)
+    out.print "\n"
+  end
+
+  def self.report_machines(out, machines)
+    machines.each do |machine|
+      out.print "Machine #{machine.name}"
+      report_bin(out, machine)
+      out.print "\n"
+    end
+    out.print "\n"
+  end
+
+  def self.report_bin(out, device)
+    out.print " bin=#{device.bin}" if device.bin != nil
+  end
+end
+#+END_SRC
+
+
+***** C: One-line extractions
+      It makes sense to extract a one-line method if it substantially clarifies
+      the intent of the line.
+*** Exercise 5.3: Large Class
+***** A:
+      Ruby errs towards providing a full set of commonly-used tools out of the
+      box, rather than towards minimalism. And since Strings are one of the most
+      commonly-used data types, the list of typical operations is long.
+***** B: String responsibilities
+******* Data formatting
+        - %
+        - center
+        - hex
+        - ljust
+        - oct
+******* Construction
+        - *
+        - +
+        - <<
+        - concat
+******* Comparison
+        - <=>
+        - ==
+        - casecmp
+******* Searching
+        - =~
+        - count
+        - include?
+        - index
+        - match
+        - rindex
+        - scan
+******* Extraction
+        - []
+        - each
+        - each_byte
+        - each_line
+        - slice!, slice!
+        - split
+        - unpack
+******* Mutation
+        - []=
+        - chomp, chomp!
+        - chop, chop!
+        - delete, delete!
+        - gsub, gsub!
+        - insert
+        - lstrip, lstrip!
+        - next, next!
+        - replace
+        - reverse, reverse!
+        - rjust
+        - rstrip, rstrip!
+        - squeeze, squeeze!
+        - strip, strip!
+        - sub, sub!
+        - succ, succ!
+        - tr, tr!
+        - tr_s, tr_s!
+        - upto
+        
+******* Natural language transformation
+        - capitalize, capitalize!
+        - downcase, downcase!
+        - swapcase, swapcase!
+        - upcase, upcase!
+******* Cryptography
+        - crypt
+******* Serialization
+        - dump
+******* Info
+        - empty?
+        - length
+        - sum
+******* Internal
+        - hash
+        - inspect
+        - intern
+******* Coercion
+        - to_f
+        - to_i
+        - to_s
+        - to_str
+        - to_sym
+***** C: Aliases
+      Aliases reduce surprise (by providing expected method names to different
+      programmers) at the cost of increasing the overall cognitive load of
+      understanding the class.
+***** D: Bang methods
+      Having bang and non-bang methods increases the versatility of the class,
+      again at the cost of greater cognitive load.
+***** E: Is the size a smell?
+      No. Sometimes more features really IS better, especially when it means you
+      can get more done without having to look up other libraries.
+***** F: vs. Java
+      Java, as a language with less of a scripting/glue background, relegates
+      more methods to external libraries, and tries to only supply methods in
+      the core language which are likely to be used by EVERY program. Ruby, on
+      the other hand, tries to supply most of the methods you are likely to need
+      in a script which will both interact with external services and with a
+      user.
+
+*** Exercise 5.4: Smells and refactorings
+
+    - ? Duplicate observed Data
+
+    - B Extract Class
+
+    - C Extract Method
+
+    - B Extract Subclass
+
+    - C Introduce Assertion (doh!)
+
+    - D Introduce Parameter Object
+
+    - D Preserve Whole Object
+
+    - A Rename Method
+
+    - D Replace parameter with Method
+*** Exercise 5.5: Triggers
+    
+***** A
+      The smells I see most often: long method, large module. I'm probably
+      guilty of creating those the most as well.
+
+***** B
+      Besides for automated metrics, one way to see that I'm creating methods or
+      modules which are too big is to use small editor windows. If I can't see
+      most of a class, or worse, all of a method, on screen at once - it's
+      probably too big.

@@ -1,3 +1,6 @@
 [submodule "rrwb-code"]
 	path = rrwb-code
 	url = git://github.com/kevinrutherford/rrwb-code.git
+[submodule "avdi-rrwb-code"]
+	path = avdi-rrwb-code
+	url = git@github.com:avdi/rrwb-code.git
